@@ -23,8 +23,6 @@ func NewServer(cfg Config) *Server {
 	}
 }
 
-
-
 func (s *Server) Start() error {
 	ln, err := net.Listen("tcp", s.ListenAddr)
 	if err != nil {
