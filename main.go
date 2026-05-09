@@ -29,6 +29,7 @@ func NewServer(cfg Config) *Server {
 		Config:    cfg,
 		peers:     make(map[*Peer]bool),
 		addPeerCh: make(chan *Peer),
+		quitCh:    make(chan struct{}),
 	}
 }
 
@@ -41,12 +42,16 @@ func (s *Server) Start() error {
 
 	go s.loop()
 
+	slog.Info("server corriendo", "ListenAddr", s.ListenAddr)
+
 	return s.acceptLoop()
 }
 
 func (s *Server) loop() {
 	for {
 		select {
+		case <-s.quitCh:
+			return
 		case peer := <-s.addPeerCh:
 			s.peers[peer] = true
 		}
@@ -69,6 +74,7 @@ func (s *Server) handleConn(conn net.Conn) {
 	peer := NewPeer(conn)
 	s.addPeerCh <- peer
 
+	slog.Info("new peer connected", "remoteAddr", conn.RemoteAddr())
 	peer.readLoop()
 }
 
