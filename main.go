@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"log/slog"
 	"net"
 )
@@ -17,6 +17,7 @@ type Server struct {
 	peers     map[*Peer]bool
 	ln        net.Listener
 	addPeerCh chan *Peer
+	quitCh    chan struct{}
 }
 
 func NewServer(cfg Config) *Server {
@@ -38,6 +39,8 @@ func (s *Server) Start() error {
 	}
 	s.ln = ln
 
+	go s.loop()
+
 	return s.acceptLoop()
 }
 
@@ -46,8 +49,6 @@ func (s *Server) loop() {
 		select {
 		case peer := <-s.addPeerCh:
 			s.peers[peer] = true
-		default:
-			fmt.Println("foo")
 		}
 	}
 }
@@ -65,7 +66,13 @@ func (s *Server) acceptLoop() error {
 }
 
 func (s *Server) handleConn(conn net.Conn) {
+	peer := NewPeer(conn)
+	s.addPeerCh <- peer
+
+	peer.readLoop()
 }
 
 func main() {
+	server := NewServer(Config{})
+	log.Fatal(server.Start())
 }
