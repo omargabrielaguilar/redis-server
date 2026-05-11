@@ -75,7 +75,9 @@ func (s *Server) handleConn(conn net.Conn) {
 	s.addPeerCh <- peer
 
 	slog.Info("new peer connected", "remoteAddr", conn.RemoteAddr())
-	peer.readLoop()
+	if err := peer.readLoop(); err != nil {
+		slog.Error("peer red error ", "err", err, "remoteAddr", conn.RemoteAddr())
+	}
 }
 
 func main() {
