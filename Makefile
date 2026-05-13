@@ -3,5 +3,3 @@ run: build
 
 build:
 		@go build -o bin/goredis .
-
-
